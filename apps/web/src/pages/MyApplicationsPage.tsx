@@ -19,10 +19,17 @@ export function MyApplicationsPage() {
 
   useEffect(() => {
     if (!token) { navigate('/login'); return; }
+
     applicationsApi.mine(token)
       .then(setApps)
       .catch((err: unknown) => setError(err instanceof ApiError ? err.message : 'Failed to load'))
       .finally(() => setLoading(false));
+
+    const id = setInterval(() => {
+      applicationsApi.mine(token).then(setApps).catch(() => {});
+    }, 10_000);
+
+    return () => clearInterval(id);
   }, [token, navigate]);
 
   if (loading) return <Spinner className="py-32" />;

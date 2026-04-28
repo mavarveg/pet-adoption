@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { petsApi, applicationsApi, ApiError, type Pet, type Application } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -70,6 +70,9 @@ export function StaffDashboardPage() {
   const [loading, setLoading] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const tabRef = useRef(tab);
+
+  useEffect(() => { tabRef.current = tab; }, [tab]);
 
   useEffect(() => {
     if (!token || !isStaff) { navigate('/'); }
@@ -97,6 +100,18 @@ export function StaffDashboardPage() {
     if (tab === 'pets') void loadPets();
     else void loadApps();
   }, [tab, loadPets, loadApps]);
+
+  useEffect(() => {
+    if (!token) return;
+    const id = setInterval(() => {
+      if (tabRef.current === 'pets') {
+        petsApi.list({ page: 1, limit: 50 }).then((res) => setPets(res.data)).catch(() => {});
+      } else {
+        applicationsApi.all(token).then(setApps).catch(() => {});
+      }
+    }, 10_000);
+    return () => clearInterval(id);
+  }, [token]);
 
   const handleApprove = async (id: string) => {
     if (!token) return;

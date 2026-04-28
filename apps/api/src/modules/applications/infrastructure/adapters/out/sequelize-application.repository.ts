@@ -55,13 +55,6 @@ export class SequelizeApplicationRepository implements ApplicationRepositoryPort
     return models.map((m) => this.toSummaryEntity(m));
   }
 
-  async findPendingByPetId(petId: string): Promise<AdoptionApplicationEntity | null> {
-    const model = await this.applicationModel.findOne({
-      where: { petId, status: ApplicationStatus.Pending },
-    });
-    return model ? this.toEntity(model) : null;
-  }
-
   async existsByUserAndPet(userId: string, petId: string): Promise<boolean> {
     const count = await this.applicationModel.count({ where: { userId, petId } });
     return count > 0;

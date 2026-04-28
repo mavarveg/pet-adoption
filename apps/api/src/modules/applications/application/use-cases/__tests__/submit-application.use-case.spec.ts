@@ -28,7 +28,6 @@ const appRepo = {
   create: jest.fn(),
   findById: jest.fn(),
   findByUserId: jest.fn(),
-  findPendingByPetId: jest.fn(),
   existsByUserAndPet: jest.fn(),
   updateStatus: jest.fn(),
   rejectAllPendingForPet: jest.fn(),
@@ -67,20 +66,9 @@ describe('SubmitApplicationUseCase', () => {
     );
   });
 
-  it('throws ConflictException when pet already has a pending application', async () => {
-    petRepo.findById.mockResolvedValue(makePet(PetStatus.Available));
-    appRepo.existsByUserAndPet.mockResolvedValue(false);
-    appRepo.findPendingByPetId.mockResolvedValue(makeApplication());
-
-    await expect(useCase.execute('user-1', { petId: 'pet-1' })).rejects.toThrow(
-      ConflictException,
-    );
-  });
-
   it('creates and returns an application for a valid request', async () => {
     petRepo.findById.mockResolvedValue(makePet(PetStatus.Available));
     appRepo.existsByUserAndPet.mockResolvedValue(false);
-    appRepo.findPendingByPetId.mockResolvedValue(null);
     appRepo.create.mockResolvedValue(makeApplication());
 
     const result = await useCase.execute('user-1', { petId: 'pet-1', message: 'Hi' });

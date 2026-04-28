@@ -47,11 +47,6 @@ export class SubmitApplicationUseCase {
       throw new ConflictException('You have already applied for this pet');
     }
 
-    const existingPending = await this.applicationRepository.findPendingByPetId(dto.petId);
-    if (existingPending) {
-      throw new ConflictException('This pet already has a pending application');
-    }
-
     return this.applicationRepository.create({
       id: randomUUID(),
       userId,

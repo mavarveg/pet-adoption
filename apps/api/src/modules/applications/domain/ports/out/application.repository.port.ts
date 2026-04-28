@@ -19,8 +19,6 @@ export interface ApplicationRepositoryPort {
 
   findAll(): Promise<ApplicationSummaryEntity[]>;
 
-  findPendingByPetId(petId: string): Promise<AdoptionApplicationEntity | null>;
-
   existsByUserAndPet(userId: string, petId: string): Promise<boolean>;
 
   updateStatus(

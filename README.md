@@ -33,11 +33,11 @@ cp apps/api/.env.example apps/api/.env
 # 3. Create the database (Sequelize creates tables, not the database itself)
 psql -U postgres -c "CREATE DATABASE pet_adoption;"
 
-# 4. Start both apps concurrently (auto-syncs DB schema on first run)
-npm run dev
-
-# 5. Seed the database (first time only)
+# 4. Seed the database — creates schema and inserts sample data (first time only)
 cd apps/api && npm run seed
+
+# 5. Start both apps concurrently
+npm run dev
 ```
 
 | App      | URL                            |

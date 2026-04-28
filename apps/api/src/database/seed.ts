@@ -13,8 +13,70 @@ const sequelize = new Sequelize({
   logging: false,
 });
 
+async function createSchema(): Promise<void> {
+  await sequelize.query(`
+    DO $$ BEGIN
+      CREATE TYPE "enum_users_role" AS ENUM ('user', 'staff');
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END $$;
+  `);
+  await sequelize.query(`
+    DO $$ BEGIN
+      CREATE TYPE "enum_pets_status" AS ENUM ('available', 'pending', 'adopted');
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END $$;
+  `);
+  await sequelize.query(`
+    DO $$ BEGIN
+      CREATE TYPE "enum_adoption_applications_status" AS ENUM ('pending', 'approved', 'rejected');
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END $$;
+  `);
+  await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS "users" (
+      "id"         UUID         NOT NULL DEFAULT gen_random_uuid(),
+      "name"       VARCHAR(255) NOT NULL,
+      "email"      VARCHAR(255) NOT NULL UNIQUE,
+      "password"   VARCHAR(255) NOT NULL,
+      "role"       "enum_users_role" NOT NULL DEFAULT 'user',
+      "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+      "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+      PRIMARY KEY ("id")
+    );
+  `);
+  await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS "pets" (
+      "id"          UUID         NOT NULL DEFAULT gen_random_uuid(),
+      "name"        VARCHAR(255) NOT NULL,
+      "species"     VARCHAR(255) NOT NULL,
+      "breed"       VARCHAR(255),
+      "age"         INTEGER,
+      "description" TEXT,
+      "image_url"   VARCHAR(255),
+      "status"      "enum_pets_status" NOT NULL DEFAULT 'available',
+      "created_at"  TIMESTAMP WITH TIME ZONE NOT NULL,
+      "updated_at"  TIMESTAMP WITH TIME ZONE NOT NULL,
+      PRIMARY KEY ("id")
+    );
+  `);
+  await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS "adoption_applications" (
+      "id"         UUID NOT NULL DEFAULT gen_random_uuid(),
+      "user_id"    UUID NOT NULL REFERENCES "users"("id"),
+      "pet_id"     UUID NOT NULL REFERENCES "pets"("id"),
+      "status"     "enum_adoption_applications_status" NOT NULL DEFAULT 'pending',
+      "message"    TEXT,
+      "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+      "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+      PRIMARY KEY ("id"),
+      UNIQUE ("user_id", "pet_id")
+    );
+  `);
+}
+
 async function seed(): Promise<void> {
   await sequelize.authenticate();
+  await createSchema();
 
   const staffHash = await bcrypt.hash('staffpass123', 12);
   const userHash = await bcrypt.hash('userpass123', 12);
